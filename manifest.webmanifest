@@ -1,0 +1,22 @@
+{
+  "name": "Daily Spend",
+  "short_name": "Spend",
+  "description": "Log what you spend each day and see it against a daily budget. Your data stays on your phone.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#eef3f1",
+  "theme_color": "#0f6b4f",
+  "categories": ["finance", "productivity"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ],
+  "shortcuts": [
+    { "name": "Quick log", "short_name": "Quick log", "url": "./#log", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

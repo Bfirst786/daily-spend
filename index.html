@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Daily Spend</title>
+<meta name="description" content="Log what you spend each day and see it against a daily budget. Your data stays on your phone.">
+<meta name="theme-color" content="#0f6b4f" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d1513" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Daily Spend">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css">
+<script type="module" src="js/app.js"></script>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></symbol>
+  <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+  <symbol id="i-archive" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v10h14V9M10 13h4"/></symbol>
+  <symbol id="i-restore" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v5h5"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+  <symbol id="i-del" viewBox="0 0 24 24"><path d="M9 5h11v14H9l-6-7z"/><path d="M12 9l5 6M17 9l-5 6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 15V4M7 9l5-5 5 5M5 20h14"/></symbol>
+</svg>
+
+<div class="wrap" id="main">
+  <header>
+    <div>
+      <h1>Daily Spend</h1>
+      <div class="mode" id="mode">Saved on this device</div>
+    </div>
+    <div class="datenav">
+      <button class="iconbtn" id="prev" aria-label="Previous day"><svg class="i"><use href="#i-back"/></svg></button>
+      <div class="day" id="dayLabel">Today</div>
+      <button class="iconbtn" id="next" aria-label="Next day"><svg class="i"><use href="#i-chev"/></svg></button>
+    </div>
+  </header>
+
+  <div class="install" id="installBanner" hidden>
+    <p id="installText">Install Daily Spend on your home screen so it opens like an app and works offline.</p>
+    <div class="btns">
+      <button class="btn" type="button" id="installBtn" hidden>Install</button>
+      <button class="btn ghost" type="button" id="installDismiss">Not now</button>
+    </div>
+  </div>
+
+  <section class="panel" aria-label="Spent on this day">
+    <div class="row">
+      <span class="label" id="spentLabel">Spent today</span>
+      <span class="pill" id="statusPill">On track</span>
+    </div>
+    <div class="row" style="align-items:center">
+      <div class="big" id="spent">$0.00</div>
+      <button class="iconbtn" id="openQuick" title="Quick log: full screen keypad"><svg class="i"><use href="#i-expand"/></svg>Quick log</button>
+    </div>
+    <div class="meter" id="meter"><i></i></div>
+    <div class="row note"><span id="leftText"></span><span id="countText">0 purchases</span></div>
+    <div class="stats">
+      <div><span class="label">This week</span><span class="num" id="wk">$0</span></div>
+      <div><span class="label">This month</span><span class="num" id="mo">$0</span></div>
+      <div><span class="label">Daily avg</span><span class="num" id="avg">$0</span></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2 id="addTitle">Add a purchase</h2></div>
+    <form class="add" id="addForm" autocomplete="off">
+      <div class="amtrow">
+        <input id="amt" class="cash" type="text" inputmode="numeric" placeholder="0.00" aria-label="Amount">
+        <button class="btn" type="submit">Add</button>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Category"></div>
+      <input id="note" type="text" maxlength="80" placeholder="What was it? (optional)" aria-label="Note">
+      <div class="capture">
+        <button class="iconbtn" type="button" id="speakBtn"><svg class="i"><use href="#i-mic"/></svg><span>Say it</span></button>
+      </div>
+      <div class="phrase" id="phraseRow" hidden>
+        <input id="phrase" type="text" placeholder="e.g. 12.50 lunch at Chipotle" aria-label="Say or type the purchase">
+        <button class="btn ghost" type="button" id="phraseGo">Fill in</button>
+      </div>
+      <div class="status" id="capStatus" hidden></div>
+    </form>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Purchases</h2><span class="note">Tap a purchase to edit it</span></div>
+    <div class="days" id="days"></div>
+    <div id="olderWrap" hidden>
+      <button class="btn ghost" type="button" id="olderBtn" style="width:100%"></button>
+      <div class="older" id="older" hidden></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Last 14 days</h2>
+    <div class="chart" id="chart"></div>
+  </section>
+
+  <section class="panel">
+    <h2 id="monthTitle">This month by category</h2>
+    <div class="cats" id="cats"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Settings</h2>
+    <div class="settings">
+      <label><span class="label">Daily budget</span><input id="budget" type="number" inputmode="decimal" min="0" step="1"></label>
+      <label><span class="label">Currency</span>
+        <select id="currency">
+          <option>USD</option><option>CAD</option><option>EUR</option><option>GBP</option><option>AUD</option><option>INR</option><option>PKR</option><option>JPY</option>
+        </select>
+      </label>
+    </div>
+    <p class="note" style="margin:0">Archived purchases stay on record but don't count toward totals. Use it for returns, reimbursed costs, or anything you want out of the numbers without losing it.</p>
+  </section>
+
+  <section class="panel">
+    <h2>Backup</h2>
+    <p class="note" style="margin:0">Your purchases are stored only on this device, inside this app. Save a backup now and then, and use it to move your data to a new phone.</p>
+    <div class="backup">
+      <button class="btn ghost" type="button" id="exportBtn"><svg class="i"><use href="#i-down"/></svg>Save backup</button>
+      <label class="btn ghost" for="importInput"><svg class="i"><use href="#i-up"/></svg>Restore backup</label>
+      <input id="importInput" type="file" accept="application/json,.json" hidden>
+    </div>
+    <div class="status" id="backupStatus" hidden></div>
+  </section>
+
+  <footer class="foot" id="foot">Daily Spend · works offline · nothing leaves your phone</footer>
+</div>
+
+<div class="quick-backdrop" id="quickBackdrop" hidden></div>
+<div class="quick" id="quick" role="dialog" aria-modal="true" aria-label="Quick log" hidden>
+  <div class="qtop">
+    <button class="iconbtn" id="closeQuick"><svg class="i"><use href="#i-back"/></svg>Done</button>
+    <span class="qday" id="qDay">Today</span>
+    <span class="num note" id="qSpent">$0.00</span>
+  </div>
+  <div class="qsum">
+    <div class="meter" id="qMeter"><i></i></div>
+    <div class="qamount zero" id="qAmount" aria-live="polite">0.00</div>
+  </div>
+  <div class="qmid">
+    <div class="chips" id="qChips" role="group" aria-label="Category"></div>
+    <input id="qNote" type="text" maxlength="80" placeholder="Note (optional)" aria-label="Note">
+    <ul class="qlist" id="qList"></ul>
+  </div>
+  <div class="keypad" id="keypad"></div>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="box" role="alertdialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h2 id="modalTitle">Delete purchase?</h2>
+    <p id="modalText" style="margin:0"></p>
+    <div class="btns"><button class="btn ghost" id="modalCancel">Cancel</button><button class="btn danger" id="modalOk">Delete</button></div>
+  </div>
+</div>
+<div class="toast" id="toast" hidden><span id="toastText"></span><button id="toastUndo">Undo</button></div>
+
+<noscript><p style="padding:16px">Daily Spend needs JavaScript turned on.</p></noscript>
+</body>
+</html>
