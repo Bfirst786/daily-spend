@@ -1,16 +1,17 @@
-/* Layout: one narrow column, phone-first — day meter, quick add, purchases grouped by day, 14-day chart, month by category. A full-screen Quick log overlays it with a cash-register keypad. */
+/* Lavender theme: this shared app is purple so it can't be confused with the owner's green claude.ai tracker.
+   Layout: one narrow column, phone-first — day meter, quick add, purchases grouped by day, 14-day chart, month by category. A full-screen Quick log overlays it with a cash-register keypad. */
 :root {
-  --bg: #eef3f1;
+  --bg: #f4f1fa;
   --surface: #ffffff;
-  --ink: #12211c;
-  --muted: #5c6d67;
-  --line: #d5dfdb;
-  --accent: #0f6b4f;
+  --ink: #211a33;
+  --muted: #655d7a;
+  --line: #e1daef;
+  --accent: #6a4fb3;
   --accent-ink: #ffffff;
-  --accent-soft: #d6ece3;
-  --warn: #b7791f;
+  --accent-soft: #e9e2f7;
+  --warn: #8d5a0b;
   --over: #c2412d;
-  --scrim: rgba(10, 20, 16, 0.45);
+  --scrim: rgba(24, 16, 40, 0.45);
   --font-display: ui-rounded, "SF Pro Rounded", "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
   --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   --font-mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, "Roboto Mono", monospace;
@@ -18,13 +19,13 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0d1513; --surface: #15201d; --ink: #e4eeea; --muted: #93a6a0; --line: #26352f;
-    --accent: #4fc99b; --accent-ink: #0b1a14; --accent-soft: #1b3a2f; --warn: #e3a948; --over: #ef7a63; --scrim: rgba(0,0,0,.6); color-scheme: dark;
+    --bg: #14111d; --surface: #1e1929; --ink: #ede8f7; --muted: #a69dbb; --line: #312a44;
+    --accent: #b9a3f2; --accent-ink: #1a1328; --accent-soft: #2e2546; --warn: #e8b04f; --over: #ef7a63; --scrim: rgba(0,0,0,.6); color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0d1513; --surface: #15201d; --ink: #e4eeea; --muted: #93a6a0; --line: #26352f;
-  --accent: #4fc99b; --accent-ink: #0b1a14; --accent-soft: #1b3a2f; --warn: #e3a948; --over: #ef7a63; --scrim: rgba(0,0,0,.6); color-scheme: dark;
+  --bg: #14111d; --surface: #1e1929; --ink: #ede8f7; --muted: #a69dbb; --line: #312a44;
+    --accent: #b9a3f2; --accent-ink: #1a1328; --accent-soft: #2e2546; --warn: #e8b04f; --over: #ef7a63; --scrim: rgba(0,0,0,.6); color-scheme: dark;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -79,7 +80,7 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
 .btn.danger { background: var(--over); color: #fff; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip { border: 1px solid var(--line); background: var(--surface); border-radius: 99px; padding: 5px 11px; font-size: 0.85rem; }
-.chip[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .capture { display: flex; gap: 8px; flex-wrap: wrap; }
 .capture .iconbtn { height: 38px; padding: 0 12px; font-size: 0.88rem; }
 .phrase { display: flex; gap: 8px; }

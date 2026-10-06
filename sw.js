@@ -1,6 +1,6 @@
 // Offline support. Online: always fetch the latest files (and refresh the copy kept on the phone).
 // Offline: serve the saved copy. Bump VERSION when files are added or removed from SHELL.
-const VERSION = "v2";
+const VERSION = "v3";
 const CACHE = "daily-spend-" + VERSION;
 const SHELL = [
   "./",

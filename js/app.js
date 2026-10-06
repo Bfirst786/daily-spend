@@ -550,7 +550,7 @@ $("exportBtn").onclick = async () => {
   try {
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       await navigator.share({ files: [file], title: "Daily Spend backup" });
-      setStatus($("backupStatus"), "Backup ready. Keep it somewhere safe, like Files or your email.");
+      setStatus($("backupStatus"), "Backup ready. Keep it somewhere safe, like Files, iCloud Drive, Google Drive or your email.");
       return;
     }
   } catch (e) {

@@ -42,8 +42,12 @@ like any other app.
 Your purchases live only on this phone, inside this app. They are deleted if you
 delete the app, clear Safari's website data, or lose the phone.
 
-- Under **Backup**, tap **Save backup** every so often and keep the file somewhere safe
-  (Files, iCloud Drive, or email it to yourself).
+- Under **Backup**, tap **Save backup** every so often and keep the file somewhere safe:
+  Files, iCloud Drive, Google Drive, or email it to yourself.
+- **To save to Google Drive:** in the share sheet that opens, tap **Google Drive** (you need
+  the Google Drive app), or tap **Save to Files** and pick Google Drive there.
+- **To restore from Google Drive:** tap **Restore backup**, then **Browse** and pick the file
+  under Google Drive.
 - To move to a new phone, install the app there, tap **Restore backup** and pick that file.
 
 ## Questions
