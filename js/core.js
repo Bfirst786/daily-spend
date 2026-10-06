@@ -3,13 +3,13 @@
 export const CATS = ["Food", "Groceries", "Transport", "Shopping", "Bills", "Fun", "Health", "Other"];
 
 export const CAT_WORDS = {
-  Food: /\b(lunch|dinner|breakfast|coffee|cafe|restaurant|pizza|burger|taco|starbucks|chipotle|mcdonald'?s?|snack|drink|bar|beer|tea|takeout|doordash|ubereats)\b/i,
-  Groceries: /\b(grocer|grocery|groceries|supermarket|costco|walmart|kroger|aldi|safeway|trader joe'?s?|whole foods|milk|bread|eggs)\b/i,
-  Transport: /\b(gas|fuel|uber|lyft|taxi|bus|train|metro|subway|parking|toll|transit|fare)\b/i,
-  Shopping: /\b(amazon|target|clothes|shirt|shoes|store|mall)\b/i,
-  Bills: /\b(bill|rent|electric|water|internet|phone|insurance|subscription|netflix|spotify)\b/i,
-  Fun: /\b(movie|cinema|concert|game|ticket|bowling|show)\b/i,
-  Health: /\b(pharmacy|doctor|medicine|cvs|walgreens|gym|dentist|clinic)\b/i,
+  Food: /\b(lunch|dinner|breakfast|coffee|cafe|restaurant|pizza|burger|taco|starbucks|chipotle|mcdonald(?:'|’)?s?|snack|drink|bar|beer|tea|takeout|doordash|ubereats)(?:e?s)?\b/i,
+  Groceries: /\b(grocer|grocery|groceries|supermarket|costco|walmart|kroger|aldi|safeway|trader joe'?s?|whole foods|milk|bread|eggs)(?:e?s)?\b/i,
+  Transport: /\b(gas|fuel|uber|lyft|taxi|bus|train|metro|subway|parking|toll|transit|fare)(?:e?s)?\b/i,
+  Shopping: /\b(amazon|target|clothes|shirt|shoes|store|mall)(?:e?s)?\b/i,
+  Bills: /\b(bill|rent|electric|water|internet|phone|insurance|subscription|netflix|spotify)(?:e?s)?\b/i,
+  Fun: /\b(movie|cinema|concert|game|ticket|bowling|show)(?:e?s)?\b/i,
+  Health: /\b(pharmacy|doctor|medicine|cvs|walgreens|gym|dentist|clinic)(?:e?s)?\b/i,
 };
 
 // ---- dates (local time, "YYYY-MM-DD" keys) ----
@@ -66,18 +66,73 @@ export function niceCeil(v) {
   return 10 * p;
 }
 
+// ---- spoken numbers -> digits ----
+const UNITS = { zero: 0, oh: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9,
+  ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19 };
+const TENS = { twenty: 20, thirty: 30, forty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90 };
+const isNumWord = (w) => w in UNITS || w in TENS || w === "hundred" || w === "thousand" || w === "point";
+
+/** Turn one run of number words into digits: "twenty five" -> "25", "twelve fifty" -> "12.50", "five point two five" -> "5.25". */
+function runToDigits(words) {
+  const segs = [];
+  let total = 0, cur = 0, any = false, last = null, decimals = null;
+  for (const w of words) {
+    if (decimals !== null) {                       // after "point": read digits one at a time
+      if (w in UNITS && UNITS[w] < 10) decimals += String(UNITS[w]);
+      else if (w in TENS) decimals += String(TENS[w]);
+      continue;
+    }
+    if (w === "point") { decimals = ""; continue; }
+    if (w === "hundred") { cur = (cur || 1) * 100; last = "hundred"; any = true; continue; }
+    if (w === "thousand") { total += (cur || 1) * 1000; cur = 0; last = "thousand"; any = true; continue; }
+    const v = w in TENS ? TENS[w] : UNITS[w];
+    const joins = !any || last === "hundred" || last === "thousand" || (last === "tens" && v < 10 && cur % 10 === 0);
+    if (!joins) { segs.push(total + cur); total = 0; cur = 0; }
+    cur += v; any = true; last = w in TENS ? "tens" : "unit";
+  }
+  segs.push(total + cur);
+  if (decimals) return `${segs[0]}.${decimals}`;
+  // "twelve fifty" / "five oh five": a second group under 100 is cents
+  if (segs.length >= 2 && segs[1] < 100) return `${segs[0]}.${String(segs[1]).padStart(2, "0")}`;
+  return String(segs[0]);
+}
+
+/** Replace spelled-out numbers in a phrase with digits; "a dollar" becomes "1 dollar". */
+export function wordsToDigits(text) {
+  const tokens = String(text || "").replace(/\ban?\s+(dollar|buck|hundred|thousand)\b/gi, "one $1").split(/(\s+|-)/);
+  const out = [];
+  for (let i = 0; i < tokens.length; i++) {
+    const w = tokens[i].toLowerCase().replace(/[.,!?]$/, "");
+    if (!isNumWord(w) || w === "point") { out.push(tokens[i]); continue; }
+    const run = [];
+    let j = i;
+    for (; j < tokens.length; j++) {
+      const t = tokens[j].toLowerCase().replace(/[.,!?]$/, "");
+      if (/^(\s+|-)$/.test(tokens[j])) continue;
+      if (isNumWord(t)) { run.push(t); continue; }
+      if (t === "and" && j + 2 < tokens.length && isNumWord(tokens[j + 2].toLowerCase())) continue;
+      break;
+    }
+    while (j > i && /^(\s+|-)$/.test(tokens[j - 1])) j--;   // keep the space after the run
+    out.push(runToDigits(run));
+    i = j - 1;
+  }
+  return out.join("");
+}
+
 /**
- * Read a spoken or typed phrase like "12.50 lunch at Chipotle",
- * "$8 for gas" or "20 dollars and 5 cents groceries".
+ * Read a spoken or typed phrase like "12.50 lunch at Chipotle", "$8 for gas",
+ * "five dollars for McDonald's", "twelve fifty groceries" or "20 dollars and 5 cents".
  */
 export function parsePhrase(text) {
-  let s = " " + String(text || "").trim() + " ";
+  let s = " " + wordsToDigits(text).trim() + " ";
   let amount = 0;
-  let m = s.match(/(\d+)\s*dollars?(?:\s*(?:and\s*)?(\d{1,2})\s*cents?)?/i);
+  let m = s.match(/(\d+(?:\.\d{1,2})?)\s*(?:dollars?|bucks?)(?:\s*(?:and\s*)?(\d{1,2})(?:\s*cents?)?)?/i);
   if (m) { amount = Number(m[1]) + (m[2] ? Number(m[2]) / 100 : 0); s = s.replace(m[0], " "); }
-  else {
-    m = s.match(/[$£€₹]?\s*(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d{1,2}))?/);
-    if (m) { amount = Number(m[1].replace(/,/g, "")) + (m[2] ? Number(m[2].padEnd(2, "0")) / 100 : 0); s = s.replace(m[0], " "); }
+  else if ((m = s.match(/(?:^|\s)(\d{1,2})\s*cents?\b/i))) {
+    amount = Number(m[1]) / 100; s = s.replace(m[0], " ");
+  } else if ((m = s.match(/[$£€₹]\s*(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d{1,2}))?/) || s.match(/(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d{1,2}))?/))) {
+    amount = Number(m[1].replace(/,/g, "")) + (m[2] ? Number(m[2].padEnd(2, "0")) / 100 : 0); s = s.replace(m[0], " ");
   }
   let category = null;
   for (const [c, re] of Object.entries(CAT_WORDS)) if (re.test(text)) { category = c; break; }

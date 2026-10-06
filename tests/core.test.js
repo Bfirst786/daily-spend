@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   keyOf, parseKey, addDays, isDayKey, mondayOf, textToCents, pressKey, centsToText,
-  sum, budgetLevel, visibleDays, niceCeil, parsePhrase, makeBackup, readBackup, mergeDays,
+  sum, budgetLevel, visibleDays, niceCeil, parsePhrase, wordsToDigits, makeBackup, readBackup, mergeDays,
 } from "../js/core.js";
 
 test("day keys round-trip and step across month ends", () => {
@@ -94,4 +94,25 @@ test("restoring merges by id", () => {
   const out = mergeDays(cur, inc);
   assert.deepEqual(out["2026-10-06"].map((i) => [i.id, i.amt]), [["a", 1], ["b", 5], ["c", 3]]);
   assert.equal(out["2026-10-05"].length, 1);
+});
+
+test("spelled-out amounts from speech", () => {
+  assert.deepEqual(parsePhrase("five dollars for McDonald's"), { amount: 5, category: "Food", note: "McDonald's" });
+  assert.deepEqual(parsePhrase("Five dollars for McDonald’s"), { amount: 5, category: "Food", note: "McDonald’s" });
+  assert.equal(parsePhrase("twelve fifty lunch").amount, 12.5);
+  assert.equal(parsePhrase("nine ninety nine Netflix").amount, 9.99);
+  assert.equal(parsePhrase("twenty five dollars and fifty cents groceries").amount, 25.5);
+  assert.equal(parsePhrase("a dollar coffee").amount, 1);
+  assert.equal(parsePhrase("one hundred twenty five rent").amount, 125);
+  assert.equal(parsePhrase("one thousand two hundred rent").amount, 1200);
+  assert.equal(parsePhrase("five point two five snack").amount, 5.25);
+  assert.equal(parsePhrase("seven bucks parking").amount, 7);
+  assert.equal(parsePhrase("fifty cents gum").amount, 0.5);
+  assert.equal(parsePhrase("5 dollars for 2 coffees").category, "Food");
+});
+
+test("number words become digits without touching other words", () => {
+  assert.equal(wordsToDigits("twenty-five dollars"), "25 dollars");
+  assert.equal(wordsToDigits("someone bought a tent"), "someone bought a tent");
+  assert.equal(wordsToDigits("a buck"), "1 buck");
 });

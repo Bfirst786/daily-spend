@@ -430,7 +430,11 @@ function setStatus(el, text, err) {
 function fillFromPhrase(text) {
   if (!text.trim()) return;
   const p = parsePhrase(text);
-  if (!(p.amount > 0)) { setStatus($("capStatus"), 'I couldn\'t find an amount. Try something like "12.50 lunch".', true); return; }
+  if (!(p.amount > 0)) {
+    $("phrase").value = text;
+    setStatus($("capStatus"), `Heard "${text.trim().slice(0, 80)}" but couldn't find an amount. Fix the text below and tap Fill in, or try "5 dollars for lunch".`, true);
+    return;
+  }
   amtEl.setCents(p.amount * 100);
   if (p.category) { state.cat = p.category; renderChips("chips"); renderChips("qChips"); }
   if (p.note) $("note").value = p.note.slice(0, 80);
