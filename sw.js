@@ -1,6 +1,7 @@
-// Offline support. Online: always fetch the latest files (and refresh the copy kept on the phone).
+// Offline support. Online: always check GitHub Pages for a newer file (bypassing the
+// browser's 10-minute HTTP cache) and refresh the copy kept on the phone.
 // Offline: serve the saved copy. Bump VERSION when files are added or removed from SHELL.
-const VERSION = "v3";
+const VERSION = "v4";
 const CACHE = "daily-spend-" + VERSION;
 const SHELL = [
   "./",
@@ -18,7 +19,7 @@ const SHELL = [
 ];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: "reload" })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (event) => {
@@ -33,7 +34,7 @@ self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET" || new URL(req.url).origin !== self.location.origin) return;
   event.respondWith(
-    fetch(req)
+    fetch(req, { cache: "no-cache" })
       .then((res) => {
         if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); }
         return res;
