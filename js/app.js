@@ -632,7 +632,27 @@ document.addEventListener("visibilitychange", () => {
   if (t !== lastToday) { if (state.selected === lastToday) selectDay(t); lastToday = t; render(); }
 });
 
+// ---------- which copy is this? ----------
+// On iPhone the home-screen app and a Safari tab keep separate data, so say which one is open.
+function showWhere() {
+  const el = $("mode");
+  el.replaceChildren();
+  if (standalone) {
+    el.textContent = "Installed app · saved on this phone";
+    return;
+  }
+  const tag = document.createElement("span");
+  tag.className = "webtag";
+  tag.textContent = "Web version";
+  const txt = document.createTextNode(isIOS ? " Not the installed app · " : " Saved in this browser · ");
+  const a = document.createElement("a");
+  a.href = "install.html";
+  a.textContent = "Install it";
+  el.append(tag, txt, a);
+}
+
 // ---------- start ----------
+showWhere();
 load();
 renderChips("chips");
 buildKeypad();

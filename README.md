@@ -20,6 +20,10 @@ like any other app.
 3. Scroll down and tap **Add to Home Screen**, then tap **Add**.
 4. Open **Daily Spend** from your home screen.
 
+Already used it in Safari before installing? On iPhone the installed app keeps its own
+data, separate from Safari. To bring those purchases over, tap **Save backup** in Safari,
+then **Restore backup** in the installed app.
+
 ## Using it
 
 - **Set your daily budget** under Settings, at the bottom. The bar at the top turns
