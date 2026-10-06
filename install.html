@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Install Daily Spend</title>
+<meta name="description" content="How to install Daily Spend on your iPhone and get started.">
+<meta name="theme-color" content="#0f6b4f" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d1513" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+:root {
+  --bg: #eef3f1; --surface: #ffffff; --ink: #12211c; --muted: #5c6d67; --line: #d5dfdb;
+  --accent: #0f6b4f; --accent-ink: #ffffff; --accent-soft: #d6ece3;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --display: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #0d1513; --surface: #15201d; --ink: #e4eeea; --muted: #93a6a0; --line: #26352f;
+    --accent: #4fc99b; --accent-ink: #0b1a14; --accent-soft: #1b3a2f; color-scheme: dark; }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 17px; line-height: 1.5;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+main { max-width: 600px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 56px; display: grid; gap: 22px; }
+h1, h2 { font-family: var(--display); margin: 0; text-wrap: balance; }
+h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.01em; }
+h2 { font-size: 1.2rem; font-weight: 700; }
+p { margin: 0; }
+.hero { display: flex; gap: 16px; align-items: center; }
+.hero img { width: 72px; height: 72px; border-radius: 16px; flex: none; }
+.lead { color: var(--muted); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: grid; gap: 12px; }
+.open { display: block; text-align: center; background: var(--accent); color: var(--accent-ink); text-decoration: none; font-weight: 700;
+  font-size: 1.1rem; padding: 16px; border-radius: 14px; }
+.open:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+ol { margin: 0; padding-left: 0; list-style: none; counter-reset: step; display: grid; gap: 12px; }
+ol li { counter-increment: step; display: grid; grid-template-columns: 32px 1fr; gap: 12px; align-items: start; }
+ol li::before { content: counter(step); width: 32px; height: 32px; border-radius: 50%; background: var(--accent-soft); color: var(--accent);
+  font-weight: 700; display: grid; place-items: center; }
+ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+.share { display: inline-block; vertical-align: -3px; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.note { font-size: 0.92rem; color: var(--muted); }
+.copy { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.copy code { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 0.9rem; overflow-wrap: anywhere; min-width: 0; }
+.copy button { font: inherit; font-size: 0.9rem; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+dl { margin: 0; display: grid; gap: 12px; }
+dt { font-weight: 700; }
+dd { margin: 0; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <img src="icons/icon-192.png" alt="">
+    <div>
+      <h1>Daily Spend</h1>
+      <p class="lead">Keep track of what you spend each day.</p>
+    </div>
+  </div>
+
+  <p>It's free, needs no account, and works without an internet connection once installed. Everything you enter stays on your phone. Nobody else can see it, including the person who sent you this link.</p>
+
+  <a class="open" href="./">Open Daily Spend</a>
+
+  <section class="card">
+    <h2>Install it on your iPhone</h2>
+    <p class="note">About 30 seconds. Afterwards it has its own icon and opens full screen like any other app.</p>
+    <ol>
+      <li><span>Open this page in <strong>Safari</strong>. Other browsers on iPhone can't install apps.</span></li>
+      <li><span>Tap <strong>Open Daily Spend</strong> above.</span></li>
+      <li><span>Tap the <strong>Share</strong> button
+        <svg class="share" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4M6 11H5v10h14V11h-1"/></svg>
+        at the bottom of the screen.</span></li>
+      <li><span>Scroll down, tap <strong>Add to Home Screen</strong>, then tap <strong>Add</strong>.</span></li>
+      <li><span>Open <strong>Daily Spend</strong> from your home screen.</span></li>
+    </ol>
+    <div class="copy">
+      <code id="link">https://bfirst786.github.io/daily-spend/</code>
+      <button type="button" id="copyBtn">Copy link</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Using it</h2>
+    <ul>
+      <li><strong>Set your daily budget</strong> under Settings, at the bottom. The bar at the top turns yellow when you're close and red when you're over.</li>
+      <li><strong>Add a purchase:</strong> type the amount (the decimal point stays put, so 1-2-5-0 is $12.50), pick a category, add a note if you want, and tap <strong>Add</strong>.</li>
+      <li><strong>Say it:</strong> tap <strong>Say it</strong> and say something like "12.50 lunch at Chipotle". If it doesn't listen right away, tap the box and use the microphone on your keyboard.</li>
+      <li><strong>Quick log:</strong> tap <strong>Quick log</strong> for a big full-screen keypad, good for adding several purchases in a row. Tap <strong>Done</strong> or swipe back to return.</li>
+      <li><strong>Fix a purchase:</strong> tap it to change the amount, category, note, date or time.</li>
+      <li><strong>Archive</strong> (box icon) keeps a purchase but leaves it out of your totals, for returns or things you got paid back for. <strong>Delete</strong> (trash icon) removes it for good.</li>
+      <li><strong>Other days:</strong> use the arrows at the top, tap a bar in the 14-day chart, or tap <strong>Show earlier days</strong> under Purchases.</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Keep a backup</h2>
+    <p>Your purchases live only on this phone, inside the app. They're deleted if you delete the app, clear Safari's website data, or lose the phone.</p>
+    <ul>
+      <li>Under <strong>Backup</strong>, tap <strong>Save backup</strong> every so often and keep the file somewhere safe: Files, iCloud Drive, or email it to yourself.</li>
+      <li>To move to a new phone, install the app there, tap <strong>Restore backup</strong> and pick that file.</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Questions</h2>
+    <dl>
+      <div><dt>Do I need to update it?</dt><dd>No. When you open it with an internet connection, you get the latest version automatically.</dd></div>
+      <div><dt>Does it cost anything or show ads?</dt><dd>No.</dd></div>
+      <div><dt>Is my data sent anywhere?</dt><dd>No. The app has no server and no account. The only copy is on your phone, plus any backups you save.</dd></div>
+    </dl>
+  </section>
+</main>
+<script>
+document.getElementById("copyBtn").addEventListener("click", async (e) => {
+  const text = document.getElementById("link").textContent;
+  try { await navigator.clipboard.writeText(text); e.target.textContent = "Copied"; }
+  catch (err) { const r = document.createRange(); r.selectNodeContents(document.getElementById("link")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+  setTimeout(() => { e.target.textContent = "Copy link"; }, 2000);
+});
+</script>
+</body>
+</html>

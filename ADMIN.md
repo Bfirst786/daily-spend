@@ -56,9 +56,12 @@ For a technical check, on a computer open the link in Chrome, then DevTools →
 
 ## Sharing it
 
-Send people the link: **<https://bfirst786.github.io/daily-spend/>**. The README has
-the install steps you can send with it, at
-<https://github.com/Bfirst786/daily-spend#readme>.
+Send people the install guide: **<https://bfirst786.github.io/daily-spend/install.html>**.
+It's a plain page (no GitHub screens) with iPhone install steps and an **Open Daily Spend**
+button. The app itself is at <https://bfirst786.github.io/daily-spend/>.
+
+The guide page is `install.html`. If you change the instructions, update both it and
+`README.md`.
 
 Nobody needs a GitHub or Claude account to use it. Each person's data stays on their
 own phone.
@@ -86,6 +89,7 @@ purchases are stored under it.
 | File | What it does |
 |---|---|
 | `index.html` | The page layout |
+| `install.html` | The install guide page people are sent to |
 | `styles.css` | Colors, light and dark themes, layout |
 | `js/app.js` | The app: screens, buttons, saving, backup, install prompt |
 | `js/core.js` | Calculations with no screen code (totals, keypad, phrase reading, backups), so they can be tested |
