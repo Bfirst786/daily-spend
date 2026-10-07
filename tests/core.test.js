@@ -2,7 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   keyOf, parseKey, addDays, isDayKey, mondayOf, textToCents, pressKey, centsToText,
-  sum, budgetLevel, visibleDays, niceCeil, parsePhrase, wordsToDigits, makeBackup, readBackup, mergeDays,
+  sum, budgetLevel, visibleDays, niceCeil, parsePhrase, wordsToDigits,
+  cleanProjects, activeProjects, findProjectByName, projectTotals, untagProject, mergeProjects, makeBackup, readBackup, mergeDays,
 } from "../js/core.js";
 
 test("day keys round-trip and step across month ends", () => {
@@ -115,4 +116,41 @@ test("number words become digits without touching other words", () => {
   assert.equal(wordsToDigits("twenty-five dollars"), "25 dollars");
   assert.equal(wordsToDigits("someone bought a tent"), "someone bought a tent");
   assert.equal(wordsToDigits("a buck"), "1 buck");
+});
+
+test("project totals skip archived purchases and track the date range", () => {
+  const days = {
+    "2026-10-01": [{ id: "a", amt: 40, proj: "p1" }, { id: "b", amt: 5 }],
+    "2026-10-04": [{ id: "c", amt: 12.5, proj: "p1" }, { id: "d", amt: 99, proj: "p1", archived: true }, { id: "e", amt: 3, proj: "p2" }],
+  };
+  assert.deepEqual(projectTotals(days), {
+    p1: { total: 52.5, count: 2, first: "2026-10-01", last: "2026-10-04" },
+    p2: { total: 3, count: 1, first: "2026-10-04", last: "2026-10-04" },
+  });
+});
+
+test("deleting a project untags its purchases and reports changed days", () => {
+  const days = { "2026-10-01": [{ id: "a", amt: 1, proj: "p1" }], "2026-10-02": [{ id: "b", amt: 2 }] };
+  const { days: out, changed } = untagProject(days, "p1");
+  assert.deepEqual(changed, ["2026-10-01"]);
+  assert.equal(out["2026-10-01"][0].proj, undefined);
+  assert.equal(days["2026-10-01"][0].proj, "p1"); // original untouched
+});
+
+test("project lists: sorting, lookup, cleaning, merging", () => {
+  const list = [{ id: "1", name: "paint living room" }, { id: "2", name: "Bathroom", archived: true }, { id: "3", name: "Garden" }];
+  assert.deepEqual(activeProjects(list).map((p) => p.name), ["Garden", "paint living room"]);
+  assert.equal(findProjectByName(list, "  Paint   Living Room ").id, "1");
+  assert.equal(findProjectByName(list, "garage"), null);
+  assert.deepEqual(cleanProjects([{ id: "x", name: "  A " }, { id: "x", name: "dup" }, { name: "no id" }, { id: "y", name: "" }]), [{ id: "x", name: "A" }]);
+  assert.deepEqual(mergeProjects([{ id: "1", name: "Old" }], [{ id: "1", name: "New", archived: true }, { id: "2", name: "B" }]),
+    [{ id: "1", name: "New", archived: true }, { id: "2", name: "B" }]);
+});
+
+test("backups keep projects and project tags", () => {
+  const data = {
+    days: { "2026-10-06": [{ id: "a", amt: 4.5, cat: "Shopping", note: "Paint", t: 1, proj: "p1" }] },
+    settings: { budget: 40, currency: "USD", projects: [{ id: "p1", name: "Paint living room" }, { id: "p2", name: "Old job", archived: true }] },
+  };
+  assert.deepEqual(readBackup(JSON.stringify(makeBackup(data))), data);
 });

@@ -1,6 +1,7 @@
 import {
   CATS, keyOf, parseKey, addDays, mondayOf, textToCents, pressKey, centsToText, MAX_CENTS,
   live, sum, budgetLevel, visibleDays, niceCeil, parsePhrase, makeBackup, readBackup, mergeDays,
+  activeProjects, findProjectByName, projectTotals, untagProject, mergeProjects,
 } from "./core.js";
 
 const $ = (id) => document.getElementById(id);
@@ -15,9 +16,11 @@ const INSTALL_KEY = "daily-spend:install-dismissed";
 
 const state = {
   days: {},                         // "YYYY-MM-DD" -> [{id, amt, cat, note, t, archived?}]
-  settings: { budget: 50, currency: "USD" },
+  settings: { budget: 50, currency: "USD", projects: [] },
   selected: todayKey(),
   cat: "Food",
+  proj: "",                         // project picked in the add form (sticky between adds)
+  showArchivedProjects: false,
   open: new Set([todayKey()]),      // expanded day cards
   showArchived: new Set(),
   editing: null,
@@ -73,10 +76,11 @@ function cashInput(el) {
 }
 
 // ---------- changes ----------
-function addItem({ cents, cat, note, day }) {
+function addItem({ cents, cat, note, day, proj }) {
   const k = day || state.selected;
   const at = k === todayKey() ? new Date() : new Date(parseKey(k).setHours(12, 0, 0, 0));
   const item = { id: newId(), amt: cents / 100, cat, note: (note || "").trim(), t: at.getTime() };
+  if (proj && projectById(proj)) item.proj = proj;
   state.days[k] = [...(state.days[k] || []), item];
   state.open.add(k);
   save(); render();
@@ -88,6 +92,7 @@ function replaceItem(oldDay, id, patch, newDay) {
   if (!it) return;
   const updated = { ...it, ...patch };
   if (!updated.archived) delete updated.archived;
+  if (!updated.proj) delete updated.proj;
   if (newDay && newDay !== oldDay) {
     state.days[oldDay] = items.filter((i) => i.id !== id);
     if (!state.days[oldDay].length) delete state.days[oldDay];
@@ -173,6 +178,9 @@ function render() {
   renderDays();
   renderChart(t);
   renderCats(catTotals, mo, sel);
+  renderProjects();
+  fillProjectSelect($("proj"), state.proj, true);
+  fillProjectSelect($("qProj"), state.proj, false);
   renderQuick();
 }
 
@@ -267,6 +275,8 @@ function itemRow(d, it) {
   const what = document.createElement("span"); what.className = "what edit-target";
   what.textContent = it.note || it.cat;
   if (it.note) { const s = document.createElement("small"); s.textContent = it.cat; what.append(s); }
+  const p = it.proj && projectById(it.proj);
+  if (p) { const tag = document.createElement("span"); tag.className = "ptag"; tag.textContent = p.name; what.append(tag); }
   const amt = document.createElement("span"); amt.className = "amt edit-target"; amt.textContent = fmt(Number(it.amt));
   const startEdit = () => { state.editing = it.id; render(); };
   [time, what, amt].forEach((el) => { el.onclick = startEdit; });
@@ -308,7 +318,10 @@ function editor(d, it) {
       <label><span class="label">Amount</span><input class="cash" type="text" inputmode="numeric" name="amt"></label>
       <label><span class="label">Category</span><select name="cat"></select></label>
     </div>
-    <label><span class="label">Note</span><input type="text" name="note" maxlength="80"></label>
+    <div class="grid2">
+      <label><span class="label">Note</span><input type="text" name="note" maxlength="80"></label>
+      <label><span class="label">Project</span><select name="proj"></select></label>
+    </div>
     <div class="grid2">
       <label><span class="label">Date</span><input type="date" name="day"></label>
       <label><span class="label">Time</span><input type="time" name="time"></label>
@@ -320,6 +333,8 @@ function editor(d, it) {
   CATS.forEach((c) => { const o = document.createElement("option"); o.textContent = c; sel.append(o); });
   sel.value = it.cat;
   f.querySelector('[name="note"]').value = it.note || "";
+  const projSel = f.querySelector('[name="proj"]');
+  fillProjectSelect(projSel, it.proj || "", false);
   const dayIn = f.querySelector('[name="day"]'); dayIn.value = d; dayIn.max = todayKey();
   const tm = new Date(it.t); f.querySelector('[name="time"]').value = `${pad(tm.getHours())}:${pad(tm.getMinutes())}`;
   const cancel = () => { state.editing = null; render(); };
@@ -332,7 +347,7 @@ function editor(d, it) {
     const [hh, mm] = (f.querySelector('[name="time"]').value || "12:00").split(":").map(Number);
     const t = parseKey(newDay); t.setHours(hh || 0, mm || 0, 0, 0);
     state.editing = null;
-    replaceItem(d, it.id, { amt: amt.cents / 100, cat: sel.value, note: f.querySelector('[name="note"]').value.trim(), t: t.getTime() }, newDay);
+    replaceItem(d, it.id, { amt: amt.cents / 100, cat: sel.value, note: f.querySelector('[name="note"]').value.trim(), t: t.getTime(), proj: projSel.value }, newDay);
     toast("Saved");
   };
   setTimeout(() => amt.focus(), 0);
@@ -414,7 +429,7 @@ const amtEl = cashInput($("amt"));
 $("addForm").addEventListener("submit", (e) => {
   e.preventDefault();
   if (!amtEl.cents) { amtEl.focus(); return; }
-  addItem({ cents: amtEl.cents, cat: state.cat, note: $("note").value });
+  addItem({ cents: amtEl.cents, cat: state.cat, note: $("note").value, proj: state.proj });
   amtEl.setCents(0); $("note").value = "";
   setStatus($("capStatus"), "");
   amtEl.focus();
@@ -503,7 +518,7 @@ function keyIn(k) { qCents = pressKey(qCents, k); renderQuick(); }
 function quickAdd() {
   if (!qCents) return;
   const day = state.selected;
-  const added = addItem({ cents: qCents, cat: state.cat, note: $("qNote").value });
+  const added = addItem({ cents: qCents, cat: state.cat, note: $("qNote").value, proj: state.proj });
   toast(`Added ${fmt(added.amt)}`, () => removeItem(day, added.id));
   qCents = 0; $("qNote").value = "";
   renderQuick();
@@ -542,6 +557,134 @@ document.addEventListener("keydown", (e) => {
   else if (e.key === "Escape") closeQuick(false);
 });
 
+// ---------- projects ----------
+const projects = () => (state.settings.projects ||= []);
+const projectById = (id) => projects().find((p) => p.id === id) || null;
+
+function createProject(name) {
+  const clean = String(name || "").trim().replace(/\s+/g, " ").slice(0, 40);
+  if (!clean) return null;
+  const existing = findProjectByName(projects(), clean);
+  if (existing) { if (existing.archived) delete existing.archived; save(); return existing; }
+  const p = { id: newId(), name: clean };
+  projects().push(p);
+  save();
+  return p;
+}
+
+/** Fill a project <select>. Shows an archived project only when it's the current value. */
+function fillProjectSelect(sel, current, allowNew) {
+  if (!sel || document.activeElement === sel) return;
+  sel.replaceChildren();
+  const opt = (value, label) => { const o = document.createElement("option"); o.value = value; o.textContent = label; sel.append(o); };
+  opt("", "No project");
+  activeProjects(projects()).forEach((p) => opt(p.id, p.name));
+  const cur = current && projectById(current);
+  if (cur && cur.archived) opt(cur.id, cur.name + " (archived)");
+  if (allowNew) opt("__new", "+ New project…");
+  sel.value = cur ? cur.id : "";
+}
+
+$("proj").addEventListener("change", () => {
+  if ($("proj").value === "__new") {
+    $("proj").value = state.proj;
+    $("newProjRow").hidden = false;
+    $("newProj").focus();
+    return;
+  }
+  state.proj = $("proj").value;
+  fillProjectSelect($("qProj"), state.proj, false);
+});
+$("qProj").addEventListener("change", () => { state.proj = $("qProj").value; });
+function createFromAddForm() {
+  const p = createProject($("newProj").value);
+  if (!p) { $("newProj").focus(); return; }
+  state.proj = p.id;
+  $("newProj").value = ""; $("newProjRow").hidden = true;
+  $("proj").blur();
+  render();
+  toast(`Project "${p.name}" selected`);
+}
+$("newProjGo").onclick = createFromAddForm;
+$("newProj").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { e.preventDefault(); createFromAddForm(); }
+  if (e.key === "Escape") { $("newProjRow").hidden = true; }
+});
+$("projForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const p = createProject($("projName").value);
+  if (!p) { $("projName").focus(); return; }
+  $("projName").value = "";
+  render();
+  toast(`Added project "${p.name}"`);
+});
+
+function projectRow(p, totals) {
+  const row = document.createElement("div");
+  row.className = "proj" + (p.archived ? " archived" : "");
+  const info = document.createElement("div");
+  const name = document.createElement("div"); name.className = "pname"; name.textContent = p.name;
+  const meta = document.createElement("div"); meta.className = "pmeta";
+  const t = totals[p.id];
+  meta.textContent = t
+    ? `${t.count} ${t.count === 1 ? "purchase" : "purchases"} · ${fmt(t.total)} · ${t.first === t.last ? dayLabel(t.first) : dayLabel(t.first) + " – " + dayLabel(t.last)}`
+    : "No purchases yet";
+  info.append(name, meta);
+  const acts = document.createElement("span"); acts.className = "acts";
+  const arc = document.createElement("button"); arc.type = "button";
+  arc.innerHTML = icon(p.archived ? "restore" : "archive");
+  arc.title = p.archived ? "Restore project" : "Archive project";
+  arc.setAttribute("aria-label", `${arc.title} ${p.name}`);
+  arc.onclick = () => {
+    const was = !!p.archived;
+    if (was) delete p.archived; else { p.archived = true; if (state.proj === p.id) state.proj = ""; }
+    save(); render();
+    toast(was ? `Restored "${p.name}"` : `Archived "${p.name}" · its purchases keep the tag`, () => {
+      if (was) p.archived = true; else delete p.archived;
+      save(); render();
+    });
+  };
+  const del = document.createElement("button"); del.type = "button"; del.className = "del";
+  del.innerHTML = icon("trash"); del.title = "Delete project";
+  del.setAttribute("aria-label", `Delete project ${p.name}`);
+  del.onclick = async () => {
+    const n = t ? t.count : 0;
+    const ok = await ask({
+      title: `Delete "${p.name}"?`,
+      text: (n ? `Its ${n} ${n === 1 ? "purchase stays" : "purchases stay"} in your history but lose the project tag. ` : "")
+        + "This can't be undone. To hide it but keep the option to bring it back, archive it instead.",
+      ok: "Delete project", danger: true,
+    });
+    if (!ok) return;
+    state.days = untagProject(state.days, p.id).days;
+    state.settings.projects = projects().filter((x) => x.id !== p.id);
+    if (state.proj === p.id) state.proj = "";
+    save(); render();
+    toast(`Deleted "${p.name}"`);
+  };
+  acts.append(arc, del);
+  row.append(info, acts);
+  return row;
+}
+
+function renderProjects() {
+  const totals = projectTotals(state.days);
+  const active = activeProjects(projects());
+  const archived = projects().filter((p) => p.archived).sort((a, b) => a.name.localeCompare(b.name));
+  const list = $("projList"); list.replaceChildren();
+  if (!active.length) {
+    const e = document.createElement("div"); e.className = "empty";
+    e.textContent = "No projects yet. Add one here, or pick + New project… when adding a purchase.";
+    list.append(e);
+  }
+  active.forEach((p) => list.append(projectRow(p, totals)));
+  $("projArchWrap").hidden = !archived.length;
+  $("projArchToggle").textContent = `${state.showArchivedProjects ? "Hide" : "Show"} ${archived.length} archived ${archived.length === 1 ? "project" : "projects"}`;
+  const al = $("projArchList"); al.hidden = !state.showArchivedProjects; al.replaceChildren();
+  if (state.showArchivedProjects) archived.forEach((p) => al.append(projectRow(p, totals)));
+}
+$("projArchToggle").onclick = () => { state.showArchivedProjects = !state.showArchivedProjects; render(); };
+
 // ---------- backup ----------
 $("exportBtn").onclick = async () => {
   const name = `daily-spend-backup-${todayKey()}.json`;
@@ -577,7 +720,9 @@ $("importInput").onchange = async (e) => {
     });
     if (!ok) return;
     state.days = mergeDays(state.days, data.days);
-    Object.assign(state.settings, data.settings);
+    const { projects: incomingProjects, ...rest } = data.settings;
+    Object.assign(state.settings, rest);
+    if (incomingProjects) state.settings.projects = mergeProjects(projects(), incomingProjects);
     save(); syncSettingsInputs(); render();
     setStatus($("backupStatus"), `Restored ${n} ${n === 1 ? "purchase" : "purchases"}.`);
   } catch (err) {

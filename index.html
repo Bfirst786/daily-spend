@@ -81,6 +81,13 @@
       </div>
       <div class="chips" id="chips" role="group" aria-label="Category"></div>
       <input id="note" type="text" maxlength="80" placeholder="What was it? (optional)" aria-label="Note">
+      <label class="projpick"><span class="label">Project</span>
+        <select id="proj" aria-label="Project (optional)"></select>
+      </label>
+      <div class="phrase" id="newProjRow" hidden>
+        <input id="newProj" type="text" maxlength="40" placeholder="New project, e.g. Paint living room" aria-label="New project name">
+        <button class="btn ghost" type="button" id="newProjGo">Create</button>
+      </div>
       <div class="capture">
         <button class="iconbtn" type="button" id="speakBtn"><svg class="i"><use href="#i-mic"/></svg><span>Say it</span></button>
       </div>
@@ -109,6 +116,19 @@
   <section class="panel">
     <h2 id="monthTitle">This month by category</h2>
     <div class="cats" id="cats"></div>
+  </section>
+
+  <section class="panel" id="projPanel">
+    <div class="panel-head"><h2>Projects</h2><span class="note">Group purchases for one job</span></div>
+    <form class="phrase" id="projForm" autocomplete="off">
+      <input id="projName" type="text" maxlength="40" placeholder="e.g. Paint living room" aria-label="New project name">
+      <button class="btn ghost" type="submit">Add project</button>
+    </form>
+    <div class="projects" id="projList"></div>
+    <div id="projArchWrap" hidden>
+      <button class="linkbtn" type="button" id="projArchToggle"></button>
+      <div class="projects" id="projArchList" hidden></div>
+    </div>
   </section>
 
   <section class="panel">
@@ -152,6 +172,7 @@
   <div class="qmid">
     <div class="chips" id="qChips" role="group" aria-label="Category"></div>
     <input id="qNote" type="text" maxlength="80" placeholder="Note (optional)" aria-label="Note">
+    <select id="qProj" aria-label="Project (optional)"></select>
     <ul class="qlist" id="qList"></ul>
   </div>
   <div class="keypad" id="keypad"></div>

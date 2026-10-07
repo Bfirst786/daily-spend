@@ -35,6 +35,11 @@ then **Restore backup** in the installed app.
   your keyboard.
 - **Quick log:** tap **Quick log** for a big full-screen keypad, good for adding
   several purchases in a row. Tap **Done** or swipe back to return.
+- **Projects:** group purchases for one job, like "Paint living room". Pick a project
+  under **Project** when adding a purchase (or choose **+ New project…**). It stays picked
+  for the next purchase until you change it. The **Projects** section shows what each
+  project has cost. **Archive** a finished project to hide it from the list (you can
+  restore it later), or **delete** it for good; its purchases stay either way.
 - **Fix a purchase:** tap it to change the amount, category, note, date or time.
 - **Archive** (box icon) keeps a purchase but leaves it out of your totals. Use it for
   returns or things you got paid back for. **Delete** (trash icon) removes it for good.

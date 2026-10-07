@@ -166,6 +166,7 @@ export function readBackup(json) {
           t: Number(i.t) || parseKey(k).setHours(12, 0, 0, 0),
         };
         if (i.archived) item.archived = true;
+        if (typeof i.proj === "string" && i.proj) item.proj = i.proj.slice(0, 40);
         return item;
       });
     if (clean.length) days[k] = clean;
@@ -174,6 +175,7 @@ export function readBackup(json) {
   const settings = {};
   if (Number(s.budget) >= 0) settings.budget = Number(s.budget);
   if (typeof s.currency === "string" && /^[A-Z]{3}$/.test(s.currency)) settings.currency = s.currency;
+  if (Array.isArray(s.projects)) settings.projects = cleanProjects(s.projects);
   return { days, settings };
 }
 
@@ -186,4 +188,69 @@ export function mergeDays(current, incoming) {
     out[k] = [...byId.values()];
   }
   return out;
+}
+
+// ---- projects ----
+// A project groups purchases for one job ("Paint living room"). Settings hold the list;
+// each purchase can carry a `proj` id. Archived projects leave the pickers but keep their tags.
+
+export function cleanProjects(list) {
+  const seen = new Set();
+  const out = [];
+  for (const p of list || []) {
+    if (!p || typeof p.id !== "string" || !p.id || seen.has(p.id)) continue;
+    const name = String(p.name || "").trim().slice(0, 40);
+    if (!name) continue;
+    seen.add(p.id);
+    const clean = { id: p.id.slice(0, 40), name };
+    if (p.archived) clean.archived = true;
+    out.push(clean);
+  }
+  return out;
+}
+
+/** Projects for a picker: active ones A–Z. */
+export const activeProjects = (list) =>
+  (list || []).filter((p) => !p.archived).sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+
+/** Find a project by name, ignoring case and extra spaces. */
+export const findProjectByName = (list, name) => {
+  const n = String(name || "").trim().replace(/\s+/g, " ").toLowerCase();
+  return (list || []).find((p) => p.name.toLowerCase() === n) || null;
+};
+
+/** Spend per project id across all days (archived purchases left out), with count and date range. */
+export function projectTotals(days) {
+  const out = {};
+  for (const [k, items] of Object.entries(days || {})) {
+    for (const i of live(items)) {
+      if (!i.proj) continue;
+      const t = (out[i.proj] ||= { total: 0, count: 0, first: k, last: k });
+      t.total = Math.round((t.total + (Number(i.amt) || 0)) * 100) / 100;
+      t.count += 1;
+      if (k < t.first) t.first = k;
+      if (k > t.last) t.last = k;
+    }
+  }
+  return out;
+}
+
+/** Remove a project's tag from every purchase. Returns the new days and the day keys that changed. */
+export function untagProject(days, id) {
+  const out = {};
+  const changed = [];
+  for (const [k, items] of Object.entries(days || {})) {
+    if (items.some((i) => i.proj === id)) {
+      out[k] = items.map((i) => { if (i.proj !== id) return i; const c = { ...i }; delete c.proj; return c; });
+      changed.push(k);
+    } else out[k] = items;
+  }
+  return { days: out, changed };
+}
+
+/** Merge restored projects into the current list by id; restored names and archive state win. */
+export function mergeProjects(current, incoming) {
+  const byId = new Map((current || []).map((p) => [p.id, p]));
+  for (const p of incoming || []) byId.set(p.id, p);
+  return [...byId.values()];
 }

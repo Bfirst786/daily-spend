@@ -172,3 +172,17 @@ body.locked .toast { top: calc(env(safe-area-inset-top, 0px) + 60px); bottom: au
 .backup { display: flex; gap: 8px; flex-wrap: wrap; }
 .backup .btn, .backup label.btn { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
 footer.foot { text-align: center; font-size: 0.75rem; color: var(--muted); }
+
+/* projects */
+.projpick { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center; }
+.projects { display: grid; gap: 6px; }
+.proj { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
+.proj .pname { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.proj .pmeta { font-size: 0.8rem; color: var(--muted); font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.proj.archived .pname { color: var(--muted); }
+.proj .acts { display: flex; gap: 2px; }
+.proj .acts button { background: none; border: 0; color: var(--muted); padding: 6px; border-radius: 6px; display: inline-flex; }
+.proj .acts button:hover { color: var(--ink); background: var(--bg); }
+.proj .acts button.del:hover { color: var(--over); }
+.ptag { display: block; width: fit-content; max-width: 100%; margin-top: 3px; padding: 1px 8px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); font-size: 0.72rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.phrase .btn { white-space: nowrap; }
